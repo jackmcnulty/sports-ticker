@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Live Sports Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div id="alert" class="hidden"></div>
+
+  <div id="grid-wrapper">
+    <div id="grid-inner"></div>
+  </div>
+
+  <script>
+    console.log('Live Sports Dashboard loaded');
+    const grid = document.getElementById('grid-inner');
+    const wrapper = document.getElementById('grid-wrapper');
+    const alertBox = document.getElementById('alert');
+
+    async function load() {
+      try {
+        const data = await fetch('/data').then(r => r.json());
+
+        const oldScrollTop = wrapper.scrollTop;
+        const oldScrollHeight = wrapper.scrollHeight;
+
+        if (data.alert) {
+          alertBox.textContent = data.alert;
+          alertBox.classList.remove('hidden');
+        } else {
+          alertBox.classList.add('hidden');
+        }
+
+        grid.innerHTML = '';
+        if (!data.events?.length) {
+          grid.innerHTML = '<p>No games</p>';
+          return;
+        }
+
+        const groups = {};
+        data.events.forEach(ev => (groups[ev.league] ||= []).push(ev));
+
+        Object.entries(groups).forEach(([league, events]) => {
+          const head = document.createElement('div');
+          head.className = 'league-header';
+          head.textContent = league;
+          grid.appendChild(head);
+
+          events.forEach(ev => {
+            const card = document.createElement('div');
+
+            if (league === 'Formula 1') {
+              const card = document.createElement('div');
+              card.className = 'game-card';
+              card.style.gridColumn = 'span 2';
+
+              const left = ev.field.slice(0, 10);
+              const right = ev.field.slice(10);
+
+              const tile = d => `
+                <div class="driver-tile">
+                  <span class="pos">${d.pos}</span>
+                  <span class="dname">${d.name}</span>
+                  <img class="dflag" src="${d.flag}" onerror="this.style.display='none'" alt="">
+                </div>`;
+
+              card.innerHTML = `
+              <div class="card-row ${ev.ongoing ? 'live' : ''}" style="flex-direction:column">
+                <div class="f1-header">
+                  <span class="f1-session">${ev.session}</span>
+                  <span class="status">${ev.status}</span>
+                </div>
+                <div class="f1-columns">
+                  <div class="f1-col">${left .map(tile).join('')}</div>
+                  <div class="f1-col">${right.map(tile).join('')}</div>
+                </div>
+              </div>`;
+              grid.appendChild(card);
+              return;         // skip normal two-team card
+            }
+
+            card.className = 'game-card';
+            const awayC = ev.winner === 'away' ? 'winner' : '';
+            const homeC = ev.winner === 'home' ? 'winner' : '';
+            const rowC = ev.ongoing ? 'live' : '';
+
+            card.innerHTML = `
+              <div class="card-row ${rowC}">
+                <img class="logo" src="${ev.away_logo}" onerror="this.style.display='none'" alt="">
+                <div class="center-text">
+                  <div class="matchup">
+                    <span class="${awayC}">${ev.away}</span> vs
+                    <span class="${homeC}">${ev.home}</span>
+                  </div>
+                  <div class="score">${ev.score}</div>
+                  <div class="status">${ev.status}</div>
+                </div>
+                <img class="logo" src="${ev.home_logo}" onerror="this.style.display='none'" alt="">
+              </div>`;
+            grid.appendChild(card);
+          });
+        });
+
+        const newScrollHeight = wrapper.scrollHeight;
+        if (newScrollHeight > wrapper.clientHeight) {
+          const ratio = oldScrollHeight ? oldScrollTop / oldScrollHeight : 0;
+          wrapper.scrollTop = ratio * newScrollHeight;
+        } else {
+          wrapper.scrollTop = 0;
+        }
+
+      } catch (err) {
+        alertBox.textContent = '⚠ Front-end fetch failed';
+        alertBox.classList.remove('hidden');
+      }
+    }
+
+    load();
+    setInterval(load, 300000);
+
+    let dir = 1;
+    let scrollPos = 0;
+    const speed = 1.3; // originally 0.4, but faster for testing
+    const pause = 10000;
+    let paused = false;
+
+    function step(ts) {
+      const maxScroll = wrapper.scrollHeight - wrapper.clientHeight;
+      if (maxScroll <= 0) { requestAnimationFrame(step); return; }
+
+      if (!paused) {
+        scrollPos += dir * speed;
+        if (scrollPos < 0) scrollPos = 0;
+        if (scrollPos > maxScroll) scrollPos = maxScroll;
+        wrapper.scrollTop = scrollPos | 0;
+      }
+
+      const atBottom = scrollPos >= maxScroll - 0.5;
+      const atTop = scrollPos <= 0.5;
+
+      if (!paused && ((dir === 1 && atBottom) || (dir === -1 && atTop))) {
+        paused = true;
+        setTimeout(() => { dir *= -1; paused = false; }, pause);
+      }
+      console.log('scroll speed =', speed);
+      requestAnimationFrame(step);
+    }
+
+    wrapper.scrollTop = 0;
+    scrollPos = 0;
+    dir = 1;
+    paused = false;
+
+    console.log('scroll speed =', speed);
+    requestAnimationFrame(step);
+  </script>
+</body>
+</html>
