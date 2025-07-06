@@ -13,8 +13,8 @@ To increase the scroll speed, update `const speed = 0.2;` in index.html to whate
 To increase the pause duration at the top and bottom, update `const pause = 10000;` in index.html, units are ms.
 
 ## Equipment
-Raspberry PI 5 Starter Kit (power, hdmi, etc.)
-Ultrawide monitor turned portrait style
+- Raspberry PI 5 Starter Kit (power, hdmi, etc.)
+- Ultrawide monitor turned portrait style
 
 ## Raspberry Pi Configuration
 
@@ -22,10 +22,10 @@ Ultrawide monitor turned portrait style
 
 2. Update and install required packages
 ```
-    sudo apt update && sudo apt upgrade
-    sudo apt install -y git python3-pip python3-venv curl \
-                    unclutter unclutter-xfixes xcompmgr \
-                    chromium-browser x11-xserver-utils
+sudo apt update && sudo apt upgrade
+sudo apt install -y git python3-pip python3-venv curl \
+                unclutter unclutter-xfixes xcompmgr \
+                chromium-browser x11-xserver-utils
 ```
 
 3. Clone this repository
