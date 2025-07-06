@@ -18,7 +18,7 @@ To increase the pause duration at the top and bottom, update `const pause = 1000
 
 ## Raspberry Pi Configuration
 
-1. Load into pi, enable ssh, ssh into it
+1. Load into pi, enable ssh, ssh into it (bonus points for static IP assignment so you never lose it)
 
 2. Update and install required packages
 ```
