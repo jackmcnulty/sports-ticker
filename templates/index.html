@@ -18,6 +18,20 @@
     const wrapper = document.getElementById('grid-wrapper');
     const alertBox = document.getElementById('alert');
 
+    let lastStartupVersion = null;
+
+    async function checkRestart() {
+      try {
+        const res = await fetch('/version').then(r => r.json());
+        if (lastStartupVersion && res.startup !== lastStartupVersion) {
+          location.reload(); // refresh the page if service restarted
+        }
+        lastStartupVersion = res.startup;
+      } catch (e) {
+        console.warn("Version check failed", e);
+      }
+    }
+
     async function load() {
       try {
         const data = await fetch('/data').then(r => r.json());

@@ -9,6 +9,12 @@ logging.basicConfig(level=logging.INFO,
 
 app = Flask(__name__)
 
+startup_time = datetime.utcnow().isoformat()
+
+@app.route("/version")
+def version():
+    return {"startup": startup_time}
+
 @app.after_request
 def add_header(resp):
     if resp.cache_control.max_age is not None:        # only static routes
