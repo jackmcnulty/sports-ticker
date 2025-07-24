@@ -9,7 +9,9 @@ logging.basicConfig(level=logging.INFO,
 
 app = Flask(__name__)
 
-startup_time = datetime.utcnow().isoformat()
+from datetime import timezone
+
+startup_time = datetime.now(timezone.utc).isoformat()
 
 @app.route("/version")
 def version():
