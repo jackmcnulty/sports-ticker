@@ -1,0 +1,90 @@
+/* ───────── FANTASY MODE ───────── */
+
+.fantasy-matchup {
+  width: 100%;
+  background: #222;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px #000;
+  margin-bottom: 20px;
+}
+
+.fantasy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  font-size: 1.3rem;
+  margin-bottom: 12px;
+}
+
+.fantasy-team {
+  flex: 1;
+  text-align: center;
+  color: #f5f5f5;
+}
+
+.fantasy-team .score {
+  font-weight: bold;
+  color: #bbb; /* default muted */
+  margin-left: 4px;
+}
+
+.fantasy-team .score.leading-score {
+  color: #4ff574;
+}
+
+.vs {
+  flex: 0 0 40px;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #999;
+}
+
+.fantasy-lineups {
+  display: flex;
+  gap: 32px;
+  margin-top: 8px;
+}
+
+.fantasy-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.player-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  background: #1a1a1a;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+
+.player-name {
+  flex: 3;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-pos,
+.player-team,
+.player-score {
+  flex: 1;
+  text-align: right;
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+.player-slot {
+  font-weight: bold;
+  margin-right: 6px;
+  width: 50px;
+  display: inline-block;
+  text-align: right;
+  color: #ccc;
+}

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Fantasy Football Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/fantasy.css">
+</head>
+<body>
+  <div id="alert" class="hidden"></div>
+
+  <div id="grid-wrapper">
+    <div id="grid-inner"></div>
+  </div>
+
+  <script>
+    const grid = document.getElementById('grid-inner');
+    const wrapper = document.getElementById('grid-wrapper');
+    const alertBox = document.getElementById('alert');
+
+    const SLOT_ORDER = {
+      "QB": 0,
+      "RB": 1,
+      "WR": 2,
+      "FLEX": 3,
+      "TE": 4,
+      "D/ST": 5,
+      "K": 6,
+      "BE": 7,
+      "IR": 8,
+    };
+
+    const normalizeSlot = slot => {
+      return slot === "RB/WR/TE" ? "FLEX" : slot;
+    };
+
+    const sortLineup = players => {
+      return [...(players || [])]
+        .map(p => ({
+          ...p,
+          lineup_slot: normalizeSlot(p.lineup_slot)
+        }))
+        .sort((a, b) => {
+          const aOrder = SLOT_ORDER[a.lineup_slot] ?? 99;
+          const bOrder = SLOT_ORDER[b.lineup_slot] ?? 99;
+          return aOrder - bOrder;
+        });
+    };
+
+    const renderPlayer = p => `
+      <div class="player-row">
+        <span class="player-slot">${p.lineup_slot}</span>
+        <span class="player-name">${p.name}</span>
+        <span class="player-pos">${p.pos}</span>
+        <span class="player-team">${p.pro_team}</span>
+        <span class="player-score">${p.score}</span>
+      </div>
+    `;
+
+    async function load() {
+      try {
+        const data = await fetch('/data').then(r => r.json());
+        console.log("Fetched data:", data);
+
+        const events = data?.events || [];
+
+        grid.innerHTML = '';
+        if (!Array.isArray(events) || events.length === 0) {
+          grid.innerHTML = '<p>No matchups found</p>';
+          return;
+        }
+
+        events.forEach(ev => {
+          const card = document.createElement('div');
+          card.className = 'game-card fantasy-matchup';
+
+          const awayLeading = ev.away_score > ev.home_score;
+          const homeLeading = ev.home_score > ev.away_score;
+
+          card.innerHTML = `
+            <div class="card-row fantasy-header">
+              <div class="fantasy-team">
+                ${ev.away}
+                <span class="score ${awayLeading ? 'leading-score' : ''}">${ev.away_score}</span>
+              </div>
+              <div class="vs">vs</div>
+              <div class="fantasy-team">
+                ${ev.home}
+                <span class="score ${homeLeading ? 'leading-score' : ''}">${ev.home_score}</span>
+              </div>
+            </div>
+            <div class="fantasy-lineups">
+              <div class="fantasy-col">
+                ${sortLineup(ev.away_players).map(renderPlayer).join('')}
+              </div>
+              <div class="fantasy-col">
+                ${sortLineup(ev.home_players).map(renderPlayer).join('')}
+              </div>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+
+      } catch (err) {
+        alertBox.textContent = '⚠ Failed to load fantasy data';
+        alertBox.classList.remove('hidden');
+        console.error("Fantasy load error:", err);
+      }
+    }
+
+    load();
+    setInterval(load, 300000);
+
+    // Smooth scroll behavior
+    let dir = 1;
+    let scrollPos = 0;
+    const speed = 1.3; // match sports scroll speed
+    const pause = 10000;
+    let paused = false;
+
+    function step(ts) {
+      const maxScroll = wrapper.scrollHeight - wrapper.clientHeight;
+      if (maxScroll <= 0) {
+        requestAnimationFrame(step);
+        return;
+      }
+
+      if (!paused) {
+        scrollPos += dir * speed;
+        if (scrollPos < 0) scrollPos = 0;
+        if (scrollPos > maxScroll) scrollPos = maxScroll;
+        wrapper.scrollTop = scrollPos | 0;
+      }
+
+      const atBottom = scrollPos >= maxScroll - 0.5;
+      const atTop = scrollPos <= 0.5;
+
+      if (!paused && ((dir === 1 && atBottom) || (dir === -1 && atTop))) {
+        paused = true;
+        setTimeout(() => {
+          dir *= -1;
+          paused = false;
+        }, pause);
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    wrapper.scrollTop = 0;
+    scrollPos = 0;
+    dir = 1;
+    paused = false;
+
+    requestAnimationFrame(step);
+  </script>
+</body>
+</html>
